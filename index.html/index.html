@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuestionario Aleatorio</title>
+    <style>
+      :root {
+        --bg1: #1d4ed8;
+        --bg2: #7c3aed;
+        --bg3: #06b6d4;
+        --panel: rgba(255, 255, 255, 0.96);
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #f59e0b;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: rgba(148, 163, 184, 0.35);
+        --shadow: rgba(37, 99, 235, 0.24);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(251, 191, 36, 0.25), transparent 25%),
+          radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.28), transparent 30%),
+          linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 24px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: 0 22px 60px var(--shadow);
+        padding: 32px;
+        backdrop-filter: blur(8px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(168, 85, 247, 0.08), rgba(16, 185, 129, 0.06));
+        pointer-events: none;
+      }
+
+      .card > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .header-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #1f2937;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        font-size: 0.75rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        line-height: 1.1;
+        background: linear-gradient(135deg, #1d4ed8, #7c3aed, #0ea5e9);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin-bottom: 24px;
+        font-size: 1rem;
+        line-height: 1.6;
+        max-width: 760px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      button {
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), #3b82f6);
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.98rem;
+        font-weight: 700;
+        padding: 12px 20px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+        box-shadow: 0 10px 18px rgba(37, 99, 235, 0.25);
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.04);
+      }
+
+      #sendBtn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 10px 18px rgba(16, 185, 129, 0.25);
+      }
+
+      .questions {
+        display: grid;
+        gap: 18px;
+      }
+
+      .question {
+        border: 1px solid var(--border);
+        border-left: 6px solid #3b82f6;
+        border-radius: 20px;
+        padding: 20px 18px 18px;
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        box-shadow: 0 10px 24px rgba(148, 163, 184, 0.18);
+      }
+
+      .question:nth-child(3n+2) {
+        border-left-color: #8b5cf6;
+      }
+
+      .question:nth-child(3n) {
+        border-left-color: #f59e0b;
+      }
+
+      .question h3 {
+        margin: 0 0 12px;
+        font-size: 1.08rem;
+        line-height: 1.5;
+        color: var(--text);
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .option {
+        width: 100%;
+        text-align: left;
+        background: linear-gradient(135deg, #ffffff, #eef6ff);
+        color: var(--text);
+        border: 1px solid rgba(96, 165, 250, 0.35);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 0.98rem;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      }
+
+      .option:hover {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      }
+
+      .option.selected {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border-color: #3b82f6;
+        font-weight: 700;
+      }
+
+      .option.correct {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        border-color: var(--success);
+        color: #166534;
+      }
+
+      .option.incorrect {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border-color: var(--danger);
+        color: #991b1b;
+      }
+
+      .visual-box {
+        margin-top: 14px;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(96, 165, 250, 0.35);
+        background: linear-gradient(135deg, #eff6ff, #f8fafc);
+      }
+
+      .visual-box svg {
+        display: block;
+        width: 100%;
+        height: 220px;
+        border: none;
+      }
+
+      .meta {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-top: 16px;
+        font-weight: 600;
+      }
+
+      .result-box {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #ecfeff, #dbeafe);
+        border: 1px solid rgba(14, 165, 233, 0.4);
+        color: var(--text);
+        font-size: 1rem;
+        box-shadow: 0 10px 18px rgba(14, 165, 233, 0.12);
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          padding: 20px;
+        }
+
+        .controls {
+          flex-direction: column;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header-badge">Redes informáticas</div>
+        <h1>Cuestionario</h1>
+        <p class="subtitle">Responde las preguntas que aparecen. Cada vez se muestran 10 preguntas aleatorias de un total de 30 y tendrás que entregar la prueba al final.</p>
+
+        <div class="controls">
+          <button type="button" id="newQuestionsBtn">Generar otra tanda</button>
+          <button type="button" id="sendBtn" style="background: #2f855a;">Entregar y corregir</button>
+        </div>
+
+        <div id="scoreSummary" class="meta">Puntuación máxima: 10 puntos</div>
+        <div id="resultSummary" class="meta" style="margin-top: 8px; display: none;"></div>
+
+        <form id="quizForm">
+          <div id="questionsContainer" class="questions"></div>
+        </form>
+        <p class="meta">Autor: Iker Palop</p>
+      </div>
+    </div>
+
+    <script>
+      const allQuestions = [
+        { text: '¿Qué significa LAN en redes informáticas?', options: ['Local Area Network', 'Large Area Network', 'Long Access Network', 'Link Access Node'], correct: 0, visual: 'lan' },
+        { text: '¿Qué significa WAN y en qué se diferencia de una LAN?', options: ['Wide Area Network; conecta redes en zonas geográficas mayores', 'Wireless Area Network; solo funciona sin cable', 'Web Access Network; es solo para internet', 'Wide Access Node; es un switch'], correct: 0, visual: 'wan' },
+        { text: '¿Para qué sirve el protocolo TCP/IP en una red?', options: ['Para permitir la comunicación entre dispositivos en una red', 'Para medir la velocidad del cable', 'Para soldar conectores RJ45', 'Para crear fibra óptica'], correct: 0, visual: 'network' },
+        { text: '¿Qué es un router y cuál es su función principal?', options: ['Dirige el tráfico entre redes y conecta distintos segmentos', 'Solo amplifica la señal Wi‑Fi', 'Es el conector del cable UTP', 'Se usa para medir la longitud del cable'], correct: 0, visual: 'router' },
+        { text: '¿Qué significa DNS y qué función cumple?', options: ['Domain Name System; traduce nombres de dominio a direcciones IP', 'Digital Network Service; sirve para medir pings', 'Data Node Signal; es el nombre de un conector', 'Direct Network Setup; configura el router'], correct: 0, visual: 'dns' },
+        { text: '¿Qué es un switch dentro de una red local?', options: ['Un dispositivo que conecta dispositivos de una red local y reenvía tráfico', 'Un tipo de fibra óptica', 'Un conector para cable UTP', 'Una herramienta para crimpado'], correct: 0, visual: 'switch' },
+        { text: '¿Qué significa IP en redes informáticas?', options: ['Dirección de protocolo de Internet', 'Interfaz de potencia', 'Identificador de puerto', 'Instrucción de protocolo'], correct: 0, visual: 'ip' },
+        { text: '¿Qué es una MAC address y para qué se usa?', options: ['Identificador físico único de una tarjeta de red', 'Nombre del puerto del router', 'Tipo de cable de fibra', 'Herramienta para testar conexiones'], correct: 0, visual: 'mac' },
+        { text: '¿Qué representa el acrónimo VLAN?', options: ['Virtual Local Area Network', 'Very Long Area Network', 'Virtual LAN Adapter', 'Wide Local Area Network'], correct: 0, visual: 'vlan' },
+        { text: '¿Qué significa Wi‑Fi y cómo se relaciona con las redes?', options: ['Tecnología inalámbrica para conectarse a redes locales', 'Cable de fibra óptica', 'Tipo de conector RJ45', 'Nombre de un protocolo de cableado'], correct: 0, visual: 'wifi' },
+        { text: '¿Qué es el cable UTP y para qué se utiliza?', options: ['Cable de par trenzado sin pantalla usado en redes', 'Cable para energía eléctrica', 'Cable de fibra para fibra óptica', 'Conector para telefonía'], correct: 0, visual: 'utp' },
+        { text: '¿Cuántos pares de hilos tiene un cable UTP de categoría 5e o 6?', options: ['4 pares', '2 pares', '8 pares', '1 par'], correct: 0, visual: 'utp' },
+        { text: '¿Qué función tienen los pares trenzados en un cable UTP?', options: ['Reducir interferencias electromagnéticas', 'Aumentar la potencia del router', 'Evitar el uso de fibra óptica', 'Crear direcciones IP'], correct: 0, visual: 'utp' },
+        { text: '¿Qué color suelen tener los hilos de un cable UTP según el estándar?', options: ['Azul, naranja, verde, marrón y sus combinaciones blancas', 'Solo negro y amarillo', 'Rojo y violeta', 'Blanco y gris'], correct: 0, visual: 'colors' },
+        { text: '¿Por qué es importante el orden correcto de los colores en un cable de red?', options: ['Porque garantiza una conexión correcta y la comunicación entre equipos', 'Porque mejora la fibra óptica', 'Porque permite enchufarlo al router', 'Porque hace que el cable sea más barato'], correct: 0, visual: 'colors' },
+        { text: '¿Qué es un conector RJ45 y para qué sirve?', options: ['Conector para redes Ethernet con 8 contactos', 'Conector de energía para televisores', 'Cable para audio analógico', 'Conector de fibra óptica'], correct: 0, visual: 'rj45' },
+        { text: '¿Cuál es la diferencia entre un conector RJ45 y un RJ11?', options: ['RJ45 suele tener 8 posiciones y RJ11 6', 'RJ45 es para fibra y RJ11 para cobre', 'RJ11 es para redes Ethernet', 'No hay diferencia'], correct: 0, visual: 'rj45' },
+        { text: '¿Qué es el estándar T568A y en qué se diferencia del T568B?', options: ['Es un orden de colores para el cableado de red; T568B tiene un orden distinto', 'Es el nombre de un router', 'Es la tensión de la fibra óptica', 'Es una herramienta de testeo'], correct: 0, visual: 't568' },
+        { text: '¿Qué orden de colores se suele usar en T568B?', options: ['Naranja/Blanco, Naranja, Verde/Blanco, Azul, Azul/Blanco, Verde, Marrón/Blanco, Marrón', 'Rojo, Verde, Azul, Negro', 'Amarillo, Blanco, Rosa, Verde', 'Naranja, Negro, Blanco, Morado'], correct: 0, visual: 't568' },
+        { text: '¿Qué tipo de cable se usa para conectar dos equipos directamente sin switch?', options: ['Cable directo o crossover según el caso', 'Cable de alimentación', 'Cable coaxial', 'Cable de fibra multimodo'], correct: 0, visual: 'crossover' },
+        { text: '¿Qué herramienta se usa para comprobar continuidad en un cable de red?', options: ['Tester de red o comprobador de continuidad', 'Taladro', 'Llave inglesa', 'Multímetro de corriente'], correct: 0, visual: 'tester' },
+        { text: '¿Para qué sirve un tester de red?', options: ['Para verificar si cada par del cable está conectado correctamente', 'Para limpiar la fibra óptica', 'Para cortar el UTP', 'Para crear rutas IP'], correct: 0, visual: 'tester' },
+        { text: '¿Qué es un crimpador y para qué se utiliza?', options: ['Herramienta para fijar los conectores RJ45 al cable', 'Dispositivo para medir el ancho de la fibra', 'Conector de fibra óptica', 'Cable para router'], correct: 0, visual: 'tool' },
+        { text: '¿Qué función tiene un alicates de corte en instalaciones de red?', options: ['Recortar cable o pelar aislamiento con precisión', 'Conectar la fibra óptica', 'Configurar un switch', 'Medir la longitud de la red'], correct: 0, visual: 'tool' },
+        { text: '¿Qué es la fibra óptica y en qué se diferencia del cable de cobre?', options: ['Transmite luz por vidrio o plástico, no electricidad, y ofrece más velocidad y distancia', 'Es un tipo de cable UTP', 'Es un conector RJ45', 'Es un router inalámbrico'], correct: 0, visual: 'fiber' },
+        { text: '¿Qué ventajas tiene la fibra óptica frente al cobre?', options: ['Más velocidad, menos interferencia y mayor distancia', 'Más peso y peor calidad', 'Mejor para enchufes domésticos', 'Menor seguridad'], correct: 0, visual: 'fiber' },
+        { text: '¿Qué es un conector SC y dónde se suele usar?', options: ['Conector de fibra óptica de empuje que se usa en telecomunicaciones y redes', 'Conector para cable UTP', 'Tipo de router Wi‑Fi', 'Herramienta para cableado'], correct: 0, visual: 'connector' },
+        { text: '¿Qué es un conector LC y por qué es más pequeño que el SC?', options: ['Conector de fibra óptica de menor tamaño para paneles densos', 'Un tipo de switch para redes pequeñas', 'Un cable de par trenzado', 'Un tester de continuidad'], correct: 0, visual: 'connector' },
+        { text: '¿Qué diferencia hay entre fibra mono modo y multimodo?', options: ['La mono modo transmite un solo haz y llega más lejos; la multimodo transmite varios haces', 'La multimodo solo sirve para RJ45', 'La mono modo no sirve para redes', 'No hay diferencia funcional'], correct: 0, visual: 'fiber' },
+        { text: '¿Para qué sirve una herramienta de punzonado en redes?', options: ['Para conectar un cable a un bloque o patch panel', 'Para cortar fibra óptica', 'Para medir la velocidad wifi', 'Para configurar DNS'], correct: 0, visual: 'tool' }
+      ];
+
+      const questionsContainer = document.getElementById('questionsContainer');
+      const newQuestionsBtn = document.getElementById('newQuestionsBtn');
+      const sendBtn = document.getElementById('sendBtn');
+      const scoreSummary = document.getElementById('scoreSummary');
+      const resultSummary = document.getElementById('resultSummary');
+      let currentQuestions = [];
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function getEvaluation(score) {
+        if (score >= 9) return 'Excelente';
+        if (score >= 7) return 'Muy bien';
+        if (score >= 5) return 'Aprobado';
+        if (score >= 3) return 'Necesita mejorar';
+        return 'Insuficiente';
+      }
+
+      function makeVisual(type) {
+        const commonStyle = 'stroke="#1d4ed8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+        const accent = 'stroke="#14b8a6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+
+        const visuals = {
+          lan: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="25" y="55" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <rect x="180" y="30" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <rect x="340" y="55" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <path d="M145 95H180M300 70H340M300 110H340" ${commonStyle}/>
+                <circle cx="80" cy="95" r="20" fill="#93c5fd"/>
+                <circle cx="235" cy="70" r="20" fill="#93c5fd"/>
+                <circle cx="395" cy="95" r="20" fill="#93c5fd"/>
+                <text x="80" y="100" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="235" y="75" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">SW</text>
+                <text x="395" y="100" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="180" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">LAN</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="90" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="250" cy="110" r="26" fill="#93c5fd" stroke="#2563eb"/>
+                <circle cx="410" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M112 110H224M276 110H388" ${commonStyle}/>
+                <path d="M250 70V82M250 138V150" ${accent}/>
+                <text x="90" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="116" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">SW</text>
+                <text x="410" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Red local</text>
+              </svg>
+            `
+          ],
+          wan: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M40 110C100 50 170 50 220 110C270 170 340 170 400 110" ${commonStyle}/>
+                <circle cx="60" cy="110" r="18" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="220" cy="110" r="18" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="380" cy="110" r="18" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M60 95V150M220 95V150M380 95V150" ${accent}/>
+                <text x="220" y="182" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">WAN</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M60 120C120 60 175 60 220 120C270 180 330 180 390 120" ${commonStyle}/>
+                <circle cx="90" cy="120" r="16" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="220" cy="120" r="16" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="350" cy="120" r="16" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M90 100V150M220 100V150M350 100V150" ${accent}/>
+                <text x="220" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Área amplia</text>
+              </svg>
+            `
+          ],
+          network: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="65" y="90" width="110" height="50" rx="10" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="195" y="60" width="110" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="325" y="90" width="110" height="50" rx="10" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M175 115H195M305 115H325" ${commonStyle}/>
+                <path d="M235 140V165H265V140" ${commonStyle}/>
+                <text x="120" y="121" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">ROUTER</text>
+                <text x="380" y="121" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">TCP/IP</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="95" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="250" cy="110" r="26" fill="#93c5fd" stroke="#2563eb"/>
+                <circle cx="405" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M117 110H224M276 110H383" ${commonStyle}/>
+                <path d="M250 80V52H315M250 140V168H315" ${accent}/>
+                <text x="95" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="116" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">NODO</text>
+                <text x="405" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Comunicación</text>
+              </svg>
+            `
+          ],
+          router: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="160" y="60" width="180" height="100" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="115" cy="110" r="28" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="385" cy="110" r="28" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M143 110H160M340 110H385" ${commonStyle}/>
+                <path d="M220 60V30M280 60V30M200 30H300" ${accent}/>
+                <text x="250" y="120" text-anchor="middle" font-size="17" fill="#0f172a" font-family="Arial">ROUTER</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="135" y="65" width="230" height="90" rx="18" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M80 110H135M365 110H420" ${commonStyle}/>
+                <circle cx="80" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="420" cy="110" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M190 65V35H310V65" ${accent}/>
+                <text x="250" y="118" text-anchor="middle" font-size="17" fill="#0f172a" font-family="Arial">Encaminador</text>
+              </svg>
+            `
+          ],
+          dns: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="90" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="290" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M210 110H290" ${commonStyle}/>
+                <path d="M175 95L210 110L175 125" ${accent}/>
+                <text x="150" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">google.es</text>
+                <text x="350" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">172.16.0.5</text>
+                <text x="250" y="180" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">DNS</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M95 85H185M95 120H185M95 155H185" ${commonStyle}/>
+                <path d="M315 85H405M315 120H405M315 155H405" ${commonStyle}/>
+                <path d="M185 120H315" ${accent}/>
+                <path d="M225 92L185 120L225 148" ${accent}/>
+                <text x="140" y="88" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">Nombre</text>
+                <text x="360" y="88" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">IP</text>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Traducción</text>
+              </svg>
+            `
+          ],
+          switch: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="160" y="60" width="180" height="100" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="90" cy="70" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="90" cy="150" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="410" cy="70" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="410" cy="150" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M112 70H160M112 150H160M340 70H388M340 150H388" ${commonStyle}/>
+                <text x="250" y="115" text-anchor="middle" font-size="17" fill="#0f172a" font-family="Arial">SWITCH</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="175" y="70" width="150" height="80" rx="14" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M110 90H175M325 90H390M110 130H175M325 130H390" ${commonStyle}/>
+                <circle cx="110" cy="90" r="16" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="390" cy="90" r="16" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="110" cy="130" r="16" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="390" cy="130" r="16" fill="#bfdbfe" stroke="#2563eb"/>
+                <text x="250" y="118" text-anchor="middle" font-size="17" fill="#0f172a" font-family="Arial">Conmutador</text>
+              </svg>
+            `
+          ],
+          utp: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="90" y="60" width="320" height="100" rx="14" fill="#e0f2fe" stroke="#2563eb" stroke-width="2"/>
+                <path d="M120 80H380M120 100H380M120 120H380M120 140H380" ${commonStyle}/>
+                <path d="M150 60V160M200 60V160M250 60V160M300 60V160M350 60V160" ${accent}/>
+                <text x="250" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">UTP</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 150C150 60 200 60 250 150C300 240 350 240 400 150" ${commonStyle}/>
+                <path d="M130 150C170 85 210 85 250 150C290 215 330 215 370 150" ${accent}/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Par trenzado</text>
+              </svg>
+            `
+          ],
+          colors: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="60" y="50" width="380" height="120" rx="16" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="95" y="75" width="50" height="70" fill="#fca5a5"/>
+                <rect x="145" y="75" width="50" height="70" fill="#ffffff"/>
+                <rect x="195" y="75" width="50" height="70" fill="#9ca3af"/>
+                <rect x="245" y="75" width="50" height="70" fill="#60a5fa"/>
+                <rect x="295" y="75" width="50" height="70" fill="#4ade80"/>
+                <rect x="345" y="75" width="50" height="70" fill="#fbbf24"/>
+                <text x="250" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Colores del cable</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="90" y="60" width="320" height="100" rx="14" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M120 100H380M120 120H380M120 140H380" ${commonStyle}/>
+                <rect x="120" y="75" width="40" height="52" fill="#fca5a5"/>
+                <rect x="170" y="75" width="40" height="52" fill="#ffffff"/>
+                <rect x="220" y="75" width="40" height="52" fill="#60a5fa"/>
+                <rect x="270" y="75" width="40" height="52" fill="#4ade80"/>
+                <rect x="320" y="75" width="40" height="52" fill="#fbbf24"/>
+                <rect x="370" y="75" width="40" height="52" fill="#9ca3af"/>
+              </svg>
+            `
+          ],
+          rj45: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="120" y="55" width="260" height="110" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="150" y="70" width="200" height="80" rx="8" fill="#ffffff" stroke="#93c5fd"/>
+                <path d="M165 80H335M165 95H335M165 110H335M165 125H335" ${commonStyle}/>
+                <text x="250" y="182" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">RJ45</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M130 60H370V150H130Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <path d="M155 60V150M200 60V150M245 60V150M290 60V150M335 60V150" ${commonStyle}/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Conector</text>
+              </svg>
+            `
+          ],
+          t568: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="70" y="55" width="160" height="110" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="270" y="55" width="160" height="110" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M90 85H210M90 110H210M90 135H210" ${commonStyle}/>
+                <path d="M290 85H410M290 110H410M290 135H410" ${accent}/>
+                <text x="150" y="182" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">T568A</text>
+                <text x="350" y="182" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">T568B</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M70 100H200M300 100H430" ${commonStyle}/>
+                <path d="M90 90V130M140 90V130M190 90V130M320 90V130M370 90V130M410 90V130" ${accent}/>
+                <text x="135" y="180" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">A</text>
+                <text x="365" y="180" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">B</text>
+              </svg>
+            `
+          ],
+          crossover: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="90" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="290" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M210 110H290" ${commonStyle}/>
+                <path d="M150 95L210 110L150 125" ${accent}/>
+                <text x="150" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="350" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">PC</text>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Crossover</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="120" cy="110" r="24" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="380" cy="110" r="24" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M144 110H210M290 110H356" ${commonStyle}/>
+                <path d="M210 80L290 110L210 140" ${accent}/>
+                <text x="120" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">A</text>
+                <text x="380" y="115" text-anchor="middle" font-size="13" fill="#0f172a" font-family="Arial">B</text>
+              </svg>
+            `
+          ],
+          tester: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="180" y="40" width="140" height="150" rx="18" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="250" cy="90" r="30" fill="#ffffff" stroke="#2563eb"/>
+                <path d="M250 60V90M250 90H220M250 90L272 112" ${commonStyle}/>
+                <path d="M180 150H320" ${accent}/>
+                <text x="250" y="190" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">Tester</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="130" y="55" width="240" height="110" rx="14" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="200" cy="110" r="24" fill="#ffffff" stroke="#2563eb"/>
+                <circle cx="300" cy="110" r="24" fill="#ffffff" stroke="#2563eb"/>
+                <path d="M175 110H180M320 110H325" ${commonStyle}/>
+                <path d="M200 82V110M200 110H180M200 110L220 130" ${accent}/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Continuidad</text>
+              </svg>
+            `
+          ],
+          tool: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="60" y="75" width="120" height="70" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M180 92H330" ${commonStyle}/>
+                <path d="M330 92L390 70V130L330 110" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/>
+                <path d="M190 112H310" ${accent}/>
+                <text x="120" y="120" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">Cable</text>
+                <text x="260" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Herramienta</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M110 145L170 80L220 130L270 70L320 130L380 90" ${commonStyle}/>
+                <path d="M100 165H400" ${accent}/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Herramientas</text>
+              </svg>
+            `
+          ],
+          fiber: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M90 150C120 80 170 60 220 60C270 60 320 80 350 150" ${commonStyle}/>
+                <path d="M120 150H380" ${accent}/>
+                <circle cx="160" cy="110" r="18" fill="#e0f2fe" stroke="#2563eb"/>
+                <circle cx="240" cy="110" r="18" fill="#e0f2fe" stroke="#2563eb"/>
+                <circle cx="320" cy="110" r="18" fill="#e0f2fe" stroke="#2563eb"/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Fibra óptica</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M90 170C160 60 250 60 410 170" ${commonStyle}/>
+                <path d="M150 170L205 95L260 170L315 95L370 170" ${accent}/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Luz</text>
+              </svg>
+            `
+          ],
+          connector: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="120" y="80" width="110" height="60" rx="10" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="270" y="80" width="110" height="60" rx="10" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M230 110H270" ${commonStyle}/>
+                <circle cx="155" cy="110" r="8" fill="#60a5fa"/>
+                <circle cx="345" cy="110" r="8" fill="#60a5fa"/>
+                <text x="175" y="170" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">SC</text>
+                <text x="325" y="170" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">LC</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M110 120H170L200 90H300L330 120H390" ${commonStyle}/>
+                <circle cx="170" cy="120" r="20" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="330" cy="120" r="20" fill="#bfdbfe" stroke="#2563eb"/>
+                <text x="170" y="180" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">SC</text>
+                <text x="330" y="180" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">LC</text>
+              </svg>
+            `
+          ],
+          wifi: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="250" cy="105" r="80" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M180 105C190 80 220 60 250 60C280 60 310 80 320 105" ${commonStyle}/>
+                <path d="M205 120C215 100 234 88 250 88C266 88 285 100 295 120" ${accent}/>
+                <circle cx="250" cy="145" r="11" fill="#60a5fa"/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Wi‑Fi</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M120 115C180 60 220 60 250 60C310 60 360 110 380 115" ${commonStyle}/>
+                <path d="M175 135C210 105 230 105 250 105C290 105 315 130 335 135" ${accent}/>
+                <circle cx="250" cy="150" r="16" fill="#60a5fa"/>
+                <text x="250" y="190" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Inalámbrico</text>
+              </svg>
+            `
+          ],
+          ip: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="80" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="300" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M200 110H300" ${commonStyle}/>
+                <path d="M215 95L200 110L215 125" ${accent}/>
+                <text x="140" y="115" text-anchor="middle" font-size="15" fill="#0f172a" font-family="Arial">192.168.1.10</text>
+                <text x="360" y="115" text-anchor="middle" font-size="15" fill="#0f172a" font-family="Arial">IP</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="100" y="70" width="300" height="80" rx="16" fill="#dbeafe" stroke="#2563eb"/>
+                <text x="250" y="115" text-anchor="middle" font-size="16" fill="#0f172a" font-family="Arial">192.168.1.10</text>
+                <path d="M150 150H350" ${commonStyle}/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Dirección IP</text>
+              </svg>
+            `
+          ],
+          mac: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="100" y="70" width="300" height="80" rx="16" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M160 90H340" ${commonStyle}/>
+                <path d="M160 110H340" ${accent}/>
+                <text x="250" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">MAC</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="70" y="60" width="360" height="100" rx="20" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M90 85H410M90 110H410M90 135H410" ${commonStyle}/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Identificador físico</text>
+              </svg>
+            `
+          ],
+          vlan: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="60" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="190" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <rect x="320" y="70" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+                <path d="M180 110H190M310 110H320" ${commonStyle}/>
+                <text x="120" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">VLAN 10</text>
+                <text x="250" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">VLAN 20</text>
+                <text x="380" y="115" text-anchor="middle" font-size="14" fill="#0f172a" font-family="Arial">VLAN 30</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="70" y="70" width="360" height="90" rx="18" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="150" cy="115" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="250" cy="115" r="22" fill="#93c5fd" stroke="#2563eb"/>
+                <circle cx="350" cy="115" r="22" fill="#bfdbfe" stroke="#2563eb"/>
+                <path d="M172 115H228M272 115H328" ${commonStyle}/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">VLAN</text>
+              </svg>
+            `
+          ],
+          default: [
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <rect x="100" y="65" width="300" height="90" rx="18" fill="#dbeafe" stroke="#2563eb"/>
+                <circle cx="170" cy="110" r="28" fill="#bfdbfe"/>
+                <circle cx="250" cy="110" r="28" fill="#93c5fd"/>
+                <circle cx="330" cy="110" r="28" fill="#bfdbfe"/>
+                <text x="250" y="185" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Red</text>
+              </svg>
+            `,
+            `
+              <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+                <path d="M90 150C150 80 200 70 250 120C290 160 350 160 410 150" ${commonStyle}/>
+                <circle cx="170" cy="108" r="18" fill="#bfdbfe" stroke="#2563eb"/>
+                <circle cx="250" cy="80" r="18" fill="#93c5fd" stroke="#2563eb"/>
+                <circle cx="330" cy="108" r="18" fill="#bfdbfe" stroke="#2563eb"/>
+                <text x="250" y="188" text-anchor="middle" font-size="18" fill="#0f172a" font-family="Arial">Conectado</text>
+              </svg>
+            `
+          ]
+        };
+
+        const list = visuals[type] || visuals.default;
+        const variant = list[Math.floor(Math.random() * list.length)];
+        return variant;
+      }
+
+      function renderQuestions() {
+        currentQuestions = shuffle(allQuestions).slice(0, 10);
+        currentQuestions.forEach((question) => delete question.selected);
+        questionsContainer.innerHTML = '';
+        scoreSummary.textContent = 'Puntuación máxima: 10 puntos';
+        resultSummary.style.display = 'none';
+        resultSummary.textContent = '';
+
+        currentQuestions.forEach((question, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'question';
+
+          const title = document.createElement('h3');
+          title.textContent = `${index + 1}. ${question.text}`;
+
+          const optionsWrap = document.createElement('div');
+          optionsWrap.className = 'options';
+
+          question.options.forEach((option, optionIndex) => {
+            const optionButton = document.createElement('button');
+            optionButton.type = 'button';
+            optionButton.className = 'option';
+            optionButton.textContent = `${String.fromCharCode(65 + optionIndex)}) ${option}`;
+            optionButton.addEventListener('click', () => {
+              question.selected = optionIndex;
+              const buttons = optionsWrap.querySelectorAll('.option');
+              buttons.forEach((btn) => btn.classList.remove('selected'));
+              optionButton.classList.add('selected');
+            });
+            optionsWrap.appendChild(optionButton);
+          });
+
+          if (question.visual) {
+            const visualBox = document.createElement('div');
+            visualBox.className = 'visual-box';
+            visualBox.innerHTML = makeVisual(question.visual);
+            wrapper.appendChild(visualBox);
+          }
+
+          wrapper.appendChild(title);
+          wrapper.appendChild(optionsWrap);
+          questionsContainer.appendChild(wrapper);
+        });
+      }
+
+      newQuestionsBtn.addEventListener('click', renderQuestions);
+      sendBtn.addEventListener('click', () => {
+        let score = 0;
+
+        currentQuestions.forEach((question, index) => {
+          const questionElement = questionsContainer.children[index];
+          const buttons = questionElement.querySelectorAll('.option');
+          const selected = question.selected;
+
+          if (selected === question.correct) {
+            score += 1;
+          }
+
+          buttons.forEach((button, btnIndex) => {
+            button.disabled = true;
+            if (btnIndex === question.correct) {
+              button.classList.add('correct');
+            }
+            if (selected !== undefined && btnIndex === selected && btnIndex !== question.correct) {
+              button.classList.add('incorrect');
+            }
+          });
+        });
+
+        const evaluation = getEvaluation(score);
+        resultSummary.style.display = 'block';
+        resultSummary.className = 'result-box';
+        resultSummary.innerHTML = `<strong>Resultado:</strong> ${score}/10 - <strong>${evaluation}</strong>`;
+      });
+
+      renderQuestions();
+    </script>
+  </body>
+</html>
